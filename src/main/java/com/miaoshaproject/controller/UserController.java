@@ -32,7 +32,7 @@ public class UserController extends BaseController{
 
     @Autowired
     private HttpServletRequest httpServletRequest;
-
+    //
     //用户注册接口
     @RequestMapping(value = "/register", method = RequestMethod.POST)
     @ResponseBody
