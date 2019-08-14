@@ -7,7 +7,6 @@ import com.miaoshaproject.error.EnumBusinessError;
 import com.miaoshaproject.response.CommonReturnType;
 import com.miaoshaproject.service.UserService;
 import com.miaoshaproject.service.model.UserModel;
-import org.apache.tomcat.util.security.MD5Encoder;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -32,7 +31,28 @@ public class UserController extends BaseController{
 
     @Autowired
     private HttpServletRequest httpServletRequest;
-    //
+
+    //用户登录接口
+    @RequestMapping(value = "/login",method = {RequestMethod.POST})
+    @ResponseBody
+    public CommonReturnType login(@RequestParam("telphone")String telphone,
+                                  @RequestParam(name="password")String password) throws BusinessException,
+            UnsupportedEncodingException, NoSuchAlgorithmException {
+        //入参校验
+        if(org.apache.commons.lang3.StringUtils.isEmpty(telphone)
+            || org.apache.commons.lang3.StringUtils.isEmpty(password)){
+            throw new BusinessException(EnumBusinessError.PARAMETER_VALIDATION_ERROR);
+        }
+
+        //用户登录服务
+        UserModel userModel = userService.validateLogin(telphone, this.EncodeByMd5(password));
+
+        //将登录凭证加入到用户登录成功的session（Token）
+        this.httpServletRequest.getSession().setAttribute("IS_LOGIN",true);
+        this.httpServletRequest.getSession().setAttribute("LOGIN_USER",userModel);
+        return CommonReturnType.create(null);
+    }
+
     //用户注册接口
     @RequestMapping(value = "/register", method = RequestMethod.POST)
     @ResponseBody
@@ -68,7 +88,6 @@ public class UserController extends BaseController{
         return newstr;
     }
 
-
     //用户获取otp短信接口
     @RequestMapping(value = "/getotp", method = RequestMethod.POST)
     @ResponseBody
@@ -86,6 +105,7 @@ public class UserController extends BaseController{
         map.put("a","123");
         return CommonReturnType.create(otpCode);
     }
+
     @RequestMapping("/get")
     @ResponseBody
     public CommonReturnType getUser(@RequestParam(name="id") Integer id) throws BusinessException {
@@ -96,6 +116,7 @@ public class UserController extends BaseController{
         UserVO userVO= convetFromModel(userModel);
         return CommonReturnType.create(userVO);
     }
+
 
     private UserVO convetFromModel(UserModel userModel) {
         if (userModel == null) {

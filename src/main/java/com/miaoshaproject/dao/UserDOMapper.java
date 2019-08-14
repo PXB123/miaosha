@@ -12,4 +12,6 @@ public interface UserDOMapper {
     UserDO selectByPrimaryKey(Integer id);
 
     int insertSelective(UserDO userDO);
+
+    UserDO selectByTelphone(String telphone);
 }

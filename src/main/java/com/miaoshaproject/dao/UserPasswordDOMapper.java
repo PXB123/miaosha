@@ -12,4 +12,6 @@ public interface UserPasswordDOMapper {
         UserPasswordDO selectByPrimaryKey(Integer id);
 
         int insertSelective(UserPasswordDO userPasswordDO);
+
+        UserPasswordDO selectByUserId(Integer id);
 }
