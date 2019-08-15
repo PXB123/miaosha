@@ -27,13 +27,15 @@
     delete from item_stock
     where id = #{id,jdbcType=INTEGER}
   </delete>
-  <insert id="insert" parameterType="com.miaoshaproject.dataobject.ItemStockDO">
+  <insert id="insert" parameterType="com.miaoshaproject.dataobject.ItemStockDO" useGeneratedKeys="true"
+          keyProperty="id">
     insert into item_stock (id, stock, item_id
       )
     values (#{id,jdbcType=INTEGER}, #{stock,jdbcType=INTEGER}, #{itemId,jdbcType=INTEGER}
       )
   </insert>
-  <insert id="insertSelective" parameterType="com.miaoshaproject.dataobject.ItemStockDO">
+  <insert id="insertSelective" parameterType="com.miaoshaproject.dataobject.ItemStockDO" useGeneratedKeys="true"
+  keyProperty="id">
     insert into item_stock
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="id != null">
@@ -75,5 +77,11 @@
     set stock = #{stock,jdbcType=INTEGER},
       item_id = #{itemId,jdbcType=INTEGER}
     where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <update id="decreaseStock" >
+    update item_stock
+    set stock = stock-#{amount},
+    where item_id = #{itemId} and stock>=#{amount}
   </update>
 </mapper>

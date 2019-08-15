@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service(value = "itemService")
 public class ItemServiceImpl implements ItemService {
@@ -78,7 +79,14 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemModel> listItem() {
-        return null;
+        List<ItemDO> itemDOList = itemDOMapper.listItem();
+        List<ItemModel> itemModelList = itemDOList.stream().map(itemDO -> {
+            ItemStockDO itemStockDO = itemStockDOMapper.selectByItemId(itemDO.getId());
+            ItemModel itemModel = this.convertModelFromDataObject(itemDO,itemStockDO);
+            return itemModel;
+        }).collect(Collectors.toList());
+
+        return itemModelList;
     }
 
     @Override
@@ -93,6 +101,18 @@ public class ItemServiceImpl implements ItemService {
         ItemModel itemModel = convertModelFromDataObject(itemDO,itemStockDO);
 
         return itemModel;
+    }
+
+    @Override
+    @Transactional
+    public boolean decreaseStock(Integer itemId, Integer amount) throws BusinessException {
+        int affectedRow = itemStockDOMapper.decreaseStock(itemId, amount);
+        if(affectedRow > 0){
+            //更新库存成功
+            return true;
+        }
+        //更新失败
+        return false;
     }
 
     private ItemModel convertModelFromDataObject(ItemDO itemDO,ItemStockDO itemStockDO){
