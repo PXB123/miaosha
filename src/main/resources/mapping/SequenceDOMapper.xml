@@ -6,105 +6,11 @@
     <result column="current_value" jdbcType="INTEGER" property="currentValue" />
     <result column="step" jdbcType="INTEGER" property="step" />
   </resultMap>
-  <insert id="insert" parameterType="com.miaoshaproject.dataobject.SequenceDO">
-    insert into sequence_info (name, current_value, step
-      )
-    values (#{name,jdbcType=VARCHAR}, #{currentValue,jdbcType=INTEGER}, #{step,jdbcType=INTEGER}
-      )
-  </insert>
-  <insert id="insertSelective" parameterType="com.miaoshaproject.dataobject.SequenceDO">
-    insert into sequence_info
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="name != null">
-        name,
-      </if>
-      <if test="currentValue != null">
-        current_value,
-      </if>
-      <if test="step != null">
-        step,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="name != null">
-        #{name,jdbcType=VARCHAR},
-      </if>
-      <if test="currentValue != null">
-        #{currentValue,jdbcType=INTEGER},
-      </if>
-      <if test="step != null">
-        #{step,jdbcType=INTEGER},
-      </if>
-    </trim>
-  </insert>
-  <resultMap id="BaseResultMap" type="com.miaoshaproject.dataobject.SequenceDO">
-    <result column="name" jdbcType="VARCHAR" property="name" />
-    <result column="current_value" jdbcType="INTEGER" property="currentValue" />
-    <result column="step" jdbcType="INTEGER" property="step" />
-  </resultMap>
-  <sql id="Example_Where_Clause">
-    <where>
-      <foreach collection="oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
-                  and ${criterion.condition}
-                </when>
-                <when test="criterion.singleValue">
-                  and ${criterion.condition} #{criterion.value}
-                </when>
-                <when test="criterion.betweenValue">
-                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
-                </when>
-                <when test="criterion.listValue">
-                  and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
-                    #{listItem}
-                  </foreach>
-                </when>
-              </choose>
-            </foreach>
-          </trim>
-        </if>
-      </foreach>
-    </where>
-  </sql>
-  <sql id="Update_By_Example_Where_Clause">
-    <where>
-      <foreach collection="example.oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
-                  and ${criterion.condition}
-                </when>
-                <when test="criterion.singleValue">
-                  and ${criterion.condition} #{criterion.value}
-                </when>
-                <when test="criterion.betweenValue">
-                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
-                </when>
-                <when test="criterion.listValue">
-                  and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
-                    #{listItem}
-                  </foreach>
-                </when>
-              </choose>
-            </foreach>
-          </trim>
-        </if>
-      </foreach>
-    </where>
-  </sql>
+
   <sql id="Base_Column_List">
     name, current_value, step
   </sql>
 
-
   <insert id="insert" parameterType="com.miaoshaproject.dataobject.SequenceDO">
     insert into sequence_info (name, current_value, step
       )
@@ -137,4 +43,16 @@
     </trim>
   </insert>
 
+  <update id="updateByPrimaryKey" parameterType="com.miaoshaproject.dataobject.SequenceDO">
+    update sequence_info
+    set current_value = #{currentValue}
+    where name=#{name}
+  </update>
+
+  <select id="getSequenceByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from sequence_info
+    where name=#{name,jdbcType=VARCHAR}for update
+  </select>
 </mapper>

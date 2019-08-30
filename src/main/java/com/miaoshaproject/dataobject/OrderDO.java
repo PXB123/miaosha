@@ -9,7 +9,7 @@ public class OrderDO {
 
     private Double itemPrice;
 
-    private Integer amout;
+    private Integer amount;
 
     private Double orderPrice;
 
@@ -45,12 +45,12 @@ public class OrderDO {
         this.itemPrice = itemPrice;
     }
 
-    public Integer getAmout() {
-        return amout;
+    public Integer getAmount() {
+        return amount;
     }
 
-    public void setAmout(Integer amout) {
-        this.amout = amout;
+    public void setAmount(Integer amount) {
+        this.amount = amount;
     }
 
     public Double getOrderPrice() {

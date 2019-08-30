@@ -8,7 +8,9 @@
 package com.miaoshaproject.service.impl;
 
 import com.miaoshaproject.dao.OrderDOMapper;
+import com.miaoshaproject.dao.SequenceDOMapper;
 import com.miaoshaproject.dataobject.OrderDO;
+import com.miaoshaproject.dataobject.SequenceDO;
 import com.miaoshaproject.error.BusinessException;
 import com.miaoshaproject.error.EnumBusinessError;
 import com.miaoshaproject.service.ItemService;
@@ -19,11 +21,15 @@ import com.miaoshaproject.service.model.OrderModel;
 import com.miaoshaproject.service.model.UserModel;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+@Service
 public class OrderServiceImpl implements OrderService {
     @Autowired
     private ItemService itemService;
@@ -33,7 +39,11 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private OrderDOMapper orderDOMapper;
 
+    @Autowired
+    private SequenceDOMapper sequenceDOMapper;
+
     @Override
+    @Transactional
     public OrderModel createOrder(Integer userId, Integer itemId, Integer amount) throws BusinessException {
         //1.校验下单状态，下单的商品是否存在，用户是否合法，购买数量是否正确
         ItemModel itemModel = itemService.getItemById(itemId);
@@ -62,6 +72,8 @@ public class OrderServiceImpl implements OrderService {
         orderModel.setOrderPrice(itemModel.getPrice().multiply(new BigDecimal(amount)));
 
         //生成交易流水号
+        orderModel.setId(genarateOrderNo());
+
         OrderDO orderDO = converFromOrderMode(orderModel);
         orderDOMapper.insertSelective(orderDO);
 
@@ -70,8 +82,8 @@ public class OrderServiceImpl implements OrderService {
         return null;
     }
 
-
-    private String genarateOrderNo(){
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public String genarateOrderNo(){
         //订单号有16位
         StringBuilder stringBuilder = new StringBuilder();
         //前8位为时间信息，年月日
@@ -79,10 +91,20 @@ public class OrderServiceImpl implements OrderService {
         String nowDate = now.format(DateTimeFormatter.ISO_DATE).replace("-", "");
         stringBuilder.append(nowDate);
         //中间六位为自增序列
-
-        //最后两位为区分表位
+        //获取当前sequence
+        int sequence = 0;
+        SequenceDO sequenceDO = sequenceDOMapper.getSequenceByName("order");
+        sequence = sequenceDO.getCurrentValue();
+        sequenceDO.setCurrentValue(sequenceDO.getCurrentValue()+sequenceDO.getStep());
+        sequenceDOMapper.updateByPrimaryKey(sequenceDO);
+        String sequenceStr = String.valueOf(sequence);
+        for(int i = 0; i < 6-sequence; i++){
+            stringBuilder.append(0);
+        }
+        stringBuilder.append(sequenceStr);
+        //最后两位为区分表位（暂时写死）
         stringBuilder.append("00");
-        return "";
+        return stringBuilder.toString();
     }
 
     private OrderDO converFromOrderMode(OrderModel orderModel){
@@ -91,6 +113,8 @@ public class OrderServiceImpl implements OrderService {
        }
         OrderDO orderDO = new OrderDO();
         BeanUtils.copyProperties(orderModel,orderDO);
+        orderDO.setOrderPrice(orderModel.getOrderPrice().doubleValue());
+        orderDO.setItemPrice(orderModel.getItemPrice().doubleValue());
         return orderDO;
     }
 
